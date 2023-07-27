@@ -15,7 +15,7 @@ from base_datos import conn
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(689, 514)
+        MainWindow.resize(800, 514) # (689, 514)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.nombre = QtWidgets.QLineEdit(self.centralwidget)
@@ -38,7 +38,8 @@ class Ui_MainWindow(object):
         self.actualizar.setGeometry(QtCore.QRect(70, 262, 211, 21))
         self.actualizar.setObjectName("actualizar")
         self.listaEmpleados = QtWidgets.QTableWidget(self.centralwidget)
-        self.listaEmpleados.setGeometry(QtCore.QRect(370, 70, 256, 192))
+        self.listaEmpleados.setGeometry(QtCore.QRect(300, 70, 450, 192)) #dimension posicion ancho y alto 370, 70, 350, 192
+
         self.listaEmpleados.setObjectName("listaEmpleados")
         self.listaEmpleados.setColumnCount(0)
         self.listaEmpleados.setRowCount(0)
@@ -54,14 +55,16 @@ class Ui_MainWindow(object):
         self.crear_base()
         self.obtener_informacion()
         self.guardar.clicked.connect(self.guardar_informacion)
+
         self.actualizar.clicked.connect(self.obtener_informacion)
-        #
+        
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        #MainWindow.setWindowTitle("APEB2-10%] Actividad 3 ->Edwin Cedillo") 
+        MainWindow.setWindowTitle(_translate("MainWindow", "APEB2-10%] Actividad 3 ->Edwin Cedillo"))
         self.label.setText(_translate("MainWindow", "Nombre"))
         self.label_2.setText(_translate("MainWindow", "Sueldo"))
         self.guardar.setText(_translate("MainWindow", "Guardar"))
@@ -70,7 +73,7 @@ class Ui_MainWindow(object):
     def crear_base(self):
         cursor = conn.cursor()
         #agrego otra caracteristica a la base de datos en sytaxis Sql "pago_seguro"
-        cadena_sql = 'CREATE TABLE Empleado (nombre TEXT, sueldo INTEGER, aporte_iess_empleado FLOAT )'
+        cadena_sql = 'CREATE TABLE Empleado (nombre TEXT, sueldo INTEGER, aporte_iess_empleado FLOAT, sueldo_neto FLOAT)'
         try:
             cursor.execute(cadena_sql)
         except:
@@ -82,9 +85,10 @@ class Ui_MainWindow(object):
         nombre = str(self.nombre.text())
         sueldo = int(self.sueldo.text())
         seguro = sueldo*0.0945 #Valor de aporte del seguro
+        sueldo_descontado = sueldo-seguro #Ingreso Neto
         #sintaxis Sql para ingresar valor de aporte empleado
-        cadena_sql = """INSERT INTO Empleado (nombre, sueldo, aporte_iess_empleado) VALUES ('%s', %d, %s);""" % \
-    (nombre, sueldo,seguro)
+        cadena_sql = """INSERT INTO Empleado (nombre, sueldo, aporte_iess_empleado, sueldo_neto) VALUES ('%s', %d, %s, %s);""" % \
+    (nombre, sueldo, seguro,sueldo_descontado)
         # ejecutar el SQL
         cursor.execute(cadena_sql)
         # confirmar los cambios
@@ -96,8 +100,16 @@ class Ui_MainWindow(object):
         cadena_consulta_sql = "SELECT * from Empleado"
         cursor.execute(cadena_consulta_sql)
         informacion = cursor.fetchall()
-        database_table_column_count = 3 #Referencia al numero de columnas
+        database_table_column_count = 4 #Referencia al numero de columnas
         self.listaEmpleados.setColumnCount(database_table_column_count)
+        
+
+        etiqueta_horizontal = ['Nombre', 'Sueldo Bruto', 'Aporte al Seguro','Sueldo Neto'] 
+        self.listaEmpleados.setHorizontalHeaderLabels(etiqueta_horizontal) #Establecienco etiquetas  a la lista empleados
+
+        #encabezado = self.listaEmpleados.horizontalHeader()
+        #encabezado.setStyleSheet("background-color: rgb(255, 255, 153);") # Cambiar el color del fondo del encabezado horizontal a amarillo suave
+        
         numero_filas = len(informacion)
         self.listaEmpleados.setRowCount(numero_filas)
         for j in range(numero_filas):
